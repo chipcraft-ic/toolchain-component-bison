@@ -7146,11 +7146,6 @@ src/bison-scan-skel.obj: src/scan-skel.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/scan-skel.c' object='src/bison-scan-skel.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_bison_CPPFLAGS) $(CPPFLAGS) $(src_bison_CFLAGS) $(CFLAGS) -c -o src/bison-scan-skel.obj `if test -f 'src/scan-skel.c'; then $(CYGPATH_W) 'src/scan-skel.c'; else $(CYGPATH_W) '$(srcdir)/src/scan-skel.c'; fi`
-
-.l.c:
-
-.y.c:
-
 install-aclocalDATA: $(aclocal_DATA)
 	@$(NORMAL_INSTALL)
 	@list='$(aclocal_DATA)'; test -n "$(aclocaldir)" || list=; \
@@ -9601,6 +9596,18 @@ mostlyclean-local: mostlyclean-generic
 	  fi; \
 	done; \
 	:
+
+.l.c:
+	@:
+
+%.c: %.l
+	@:
+
+.y.c:
+	@:
+
+%.c: %.y
+	@:
 
 clean-local:
 	rm -rf $(CLEANDIRS)
