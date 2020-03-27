@@ -80,16 +80,8 @@ typedef size_t uintptr_t;
 
 // See https://lists.gnu.org/r/bug-bison/2019-10/msg00061.html
 // and https://trac.macports.org/ticket/59927.
-# if defined GCC_VERSION && 405 <= GCC_VERSION
-#  define IGNORE_TYPE_LIMITS_BEGIN \
-     _Pragma ("GCC diagnostic push") \
-     _Pragma ("GCC diagnostic ignored \"-Wtype-limits\"")
-#  define IGNORE_TYPE_LIMITS_END \
-     _Pragma ("GCC diagnostic pop")
-# else
-#  define IGNORE_TYPE_LIMITS_BEGIN
-#  define IGNORE_TYPE_LIMITS_END
-# endif
+#define IGNORE_TYPE_LIMITS_BEGIN
+#define IGNORE_TYPE_LIMITS_END
 
 
 /*-----------------.
