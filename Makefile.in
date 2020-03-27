@@ -7148,10 +7148,9 @@ src/bison-scan-skel.obj: src/scan-skel.c
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_bison_CPPFLAGS) $(CPPFLAGS) $(src_bison_CFLAGS) $(CFLAGS) -c -o src/bison-scan-skel.obj `if test -f 'src/scan-skel.c'; then $(CYGPATH_W) 'src/scan-skel.c'; else $(CYGPATH_W) '$(srcdir)/src/scan-skel.c'; fi`
 
 .l.c:
-	$(AM_V_LEX)$(am__skiplex) $(SHELL) $(YLWRAP) $< $(LEX_OUTPUT_ROOT).c $@ -- $(LEXCOMPILE)
 
 .y.c:
-	$(AM_V_YACC)$(am__skipyacc) $(SHELL) $(YLWRAP) $< y.tab.c $@ y.tab.h `echo $@ | $(am__yacc_c2h)` y.output $*.output -- $(YACCCOMPILE)
+
 install-aclocalDATA: $(aclocal_DATA)
 	@$(NORMAL_INSTALL)
 	@list='$(aclocal_DATA)'; test -n "$(aclocaldir)" || list=; \

@@ -71,6 +71,10 @@ include etc/local.mk
 include lib/local.mk
 include src/local.mk
 
+.l.c:
+
+.y.c:
+
 clean-local:
 	rm -rf $(CLEANDIRS)
 
