@@ -25,7 +25,7 @@ m4_pattern_forbid([^_?(gl_[A-Z]|AX_|BISON_)])
 m4_pattern_allow([^BISON_USE_NLS$])
 
 AC_INIT([GNU Bison],
-        m4_esyscmd([build-aux/git-version-gen .tarball-version]),
+        [3.7.6],
         [bug-bison@gnu.org],
         [],
         [https://www.gnu.org/software/bison/])
@@ -308,11 +308,6 @@ AC_SUBST([aclocaldir])
 # Create the benchmark script.
 AC_CONFIG_FILES([etc/bench.pl], [chmod +x etc/bench.pl])
 
-# Initialize the test suite.
-AC_CONFIG_TESTDIR(tests)
-AC_CONFIG_FILES([tests/atlocal])
-AC_CONFIG_FILES([tests/bison], [chmod +x tests/bison])
-
 AC_CHECK_PROGS([VALGRIND], [valgrind])
 # Use something simpler that $host_os to select our suppression file.
 uname=`uname`
@@ -347,8 +342,7 @@ AM_MISSING_PROG([AUTOM4TE], [autom4te])
 AC_SUBST([GCC])
 
 AC_CONFIG_FILES([Makefile
-                 po/Makefile.in
-                 doc/yacc.1])
+                 po/Makefile.in])
 
 # Fix LIBOBJS to give the Makefile the right file names.  Otherwise
 # compilation works, but with unexpected file names, so clean rules don't

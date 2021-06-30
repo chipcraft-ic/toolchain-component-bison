@@ -39,8 +39,8 @@ dependencies = $(BISON_IN) $(src_bison_SOURCES) $(dist_skeletons_DATA)
 ## Running the bison from this tarball.  To generate our own parser,
 ## but also to run the tests.  Of course, you ought to keep a sane
 ## version of Bison nearby...
-BISON = $(top_builddir)/tests/bison
-BISON_IN = $(top_srcdir)/tests/bison.in
+BISON = bison
+BISON_IN =
 YACC = $(BISON) -o y.tab.c
 AM_YFLAGS_WITH_LINES = --defines -Werror -Wall,dangling-alias --report=all
 AM_YFLAGS = $(AM_YFLAGS_WITH_LINES) --no-lines
@@ -55,6 +55,7 @@ CLEANDIRS =
 CLEANFILES =
 DISTCLEANFILES =
 EXTRA_DIST += $(dist_TESTS)
+MAINTAINERCLEANFILES =
 MOSTLYCLEANDIRS =
 MOSTLYCLEANFILES =
 SUFFIXES =
@@ -66,12 +67,9 @@ noinst_LIBRARIES =
 
 include build-aux/local.mk
 include data/local.mk
-include doc/local.mk
 include etc/local.mk
-include examples/local.mk
 include lib/local.mk
 include src/local.mk
-include tests/local.mk
 
 clean-local:
 	rm -rf $(CLEANDIRS)
@@ -97,12 +95,6 @@ dist-hook: gen-ChangeLog gen-synclines
 # permissions.
 .PHONY: gen-synclines
 gen-synclines:
-	cd $(distdir) &&						\
-	if ! grep '#line' src/parse-gram.c >/dev/null 2>&1; then	\
-	  $(abs_top_builddir)/tests/bison				\
-	    $(AM_YFLAGS_WITH_LINES) src/parse-gram.y			\
-	    -o src/parse-gram.c;					\
-	fi
 
 .PHONY: update-b4-copyright update-package-copyright-year
 update-b4-copyright:
@@ -139,4 +131,4 @@ codespell:
 	&& $(CODESPELL) \
 	     --regex "[\\w\\-'’\`]+\+*" \
 	     --ignore-words-list "ba,circularly,cloneable,copyable,define'd,dout,froms,iff,ifset,od,ois" \
-	     $$(git ls-files data doc lib src tests)
+	     $$(git ls-files data lib src)
