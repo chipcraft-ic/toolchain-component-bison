@@ -445,13 +445,13 @@ namespace yy
         return parser::make_END_OF_FILE (]AT_LOCATION_IF([location ()])[);]],
 [AT_LOCATION_IF([
         *llocp = location ();])[
-        return ]AT_TOKEN([END_OF_FILE])[;]])[
+        return parser::token::END_OF_FILE;]])[
 
       case ',':]AT_TOKEN_CTOR_IF([[
         return parser::make_COMMA (]AT_LOCATION_IF([location ()])[);]],
 [AT_LOCATION_IF([
         *llocp = location ();])[
-        return ]AT_TOKEN([COMMA])[;]])[
+        return parser::token::COMMA;]])[
 
       default:
         stage = stage - '0';
@@ -460,14 +460,14 @@ namespace yy
            return parser::make_NUMBER (stage]AT_LOCATION_IF([, location ()])[);]], [[
            lvalp->BUILD (int, stage);]AT_LOCATION_IF([
            *llocp = location ();])[
-           return ]AT_TOKEN(NUMBER)[;]])[
+           return parser::token::NUMBER;]])[
          }
        else
          {]AT_TOKEN_CTOR_IF([[
            return parser::make_TEXT (to_string (stage)]AT_LOCATION_IF([, location ()])[);]], [[
            lvalp->BUILD (string, to_string (stage));]AT_LOCATION_IF([
            *llocp = location ();])[
-           return ]AT_TOKEN([TEXT])[;]])[
+           return parser::token::TEXT;]])[
          }
     }
   }
@@ -593,7 +593,7 @@ AT_BISON_OPTION_PUSHDEFS([%skeleton "lalr1.cc"])
 
 AT_DATA_GRAMMAR([[input.y]],
 [[%skeleton "lalr1.cc"
-%header
+%defines
 
 %debug
 %define parse.assert
@@ -727,7 +727,7 @@ AT_DATA([input.yy],
 [[%require "3.2"
 %skeleton "lalr1.cc"
 %locations
-%header
+%defines
 %debug
 %%
 exp: %empty;
@@ -964,7 +964,7 @@ AT_BISON_OPTION_PUSHDEFS([$1 %debug])
 
 AT_DATA_GRAMMAR([[input.yy]],
 [[$1
-%header
+%defines
 
 %code
 {
@@ -1062,7 +1062,6 @@ AT_CLEANUP
 
 AT_TEST([%skeleton "lalr1.cc"])
 AT_TEST([%skeleton "glr.cc"])
-AT_TEST([%skeleton "glr2.cc"])
 
 m4_popdef([AT_TEST])
 
@@ -1369,7 +1368,7 @@ m4_popdef([AT_TEST])
 
 AT_SETUP([[C++ GLR parser identifier shadowing]])
 
-AT_BISON_OPTION_PUSHDEFS([%skeleton "glr.cc"])
+AT_BISON_OPTION_PUSHDEFS
 AT_DATA_GRAMMAR([input.yy], [
 %skeleton "glr.cc"
 
@@ -1396,7 +1395,7 @@ int yylex (yy::parser::semantic_type *lvalp)
   // bug with a macro that erroneously expanded this identifier to
   // yystackp->yyval.
   YY_USE (lvalp);
-  return ]AT_TOKEN([ZERO])[;
+  return yy::parser::token::ZERO;
 }
 
 void yy::parser::error (std::string const&)
@@ -1453,7 +1452,7 @@ AT_BISON_OPTION_POPDEFS
 mkdir -p include/ast
 
 AT_TEST([x1],
-        [%header
+        [%defines
          %locations
          %define api.location.file "include/ast/loc.hh"
          %define api.location.include {<ast/loc.hh>}])
@@ -1468,7 +1467,7 @@ AT_CHECK([sed -ne '/INCLUDED/p;/\\file/{p;n;p;}' include/ast/loc.hh], [],
 ]])
 
 AT_TEST([x2],
-        [%header
+        [%defines
          %locations
          %code requires {#include <ast/loc.hh>}
          %define api.location.type {x1::location}])

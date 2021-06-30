@@ -37,7 +37,7 @@
   # define YYENABLE_NLS 1
   # include <libintl.h>
   // Unless specified otherwise, we expect bistromathic's own
-  // catalog to be installed in the same tree as Bison's catalog.
+  // catalogue to be installed in the same tree as Bison's catalogue.
   # ifndef LOCALEDIR
   #  define LOCALEDIR BISON_LOCALEDIR
   # endif
@@ -87,17 +87,13 @@
   yytoken_kind_t
   yylex (const char **line, YYSTYPE *yylval, YYLTYPE *yylloc,
          const user_context *uctx);
-  void yyerror (const YYLTYPE *loc, const user_context *uctx,
+  void yyerror (YYLTYPE *loc, const user_context *uctx,
                 char const *format, ...)
     __attribute__ ((__format__ (__printf__, 3, 4)));
 }
 
 // Emitted in the implementation file.
 %code {
-  // Print *LOC on OUT.
-  static void location_print (FILE *out, YYLTYPE const * const loc);
-  #define YYLOCATION_PRINT location_print
-
   #if defined ENABLE_NLS && ENABLE_NLS
   # define _(Msgid)  gettext (Msgid)
   #else
@@ -121,13 +117,13 @@
 // with TOK_ (e.g., TOK_EOF).
 %define api.token.prefix {TOK_}
 
-// Customized syntax error messages (see yyreport_syntax_error)...
+// Customized syntax error messages (see yyreport_syntax_error).
 %define parse.error custom
 
-// ... with locations...
+// with locations.
 %locations
 
-// ... and accurate list of expected tokens.
+// and accurate list of expected tokens.
 %define parse.lac full
 
 // Generate the parser description file (calc.output).
@@ -191,7 +187,7 @@ exp:
   {
     if ($r == 0)
       {
-        yyerror (&@$, uctx, _("error: division by zero"));
+        yyerror (&@$, uctx, "error: division by zero");
         YYERROR;
       }
     else
@@ -273,26 +269,6 @@ symbol_count (void)
 }
 
 
-
-/*------------.
-| Locations.  |
-`------------*/
-
-// Print *LOC on OUT.  Do it in a compact way, that avoids redundancy.
-
-static void
-location_print (FILE *out, YYLTYPE const * const loc)
-{
-  fprintf (out, "%d.%d", loc->first_line, loc->first_column);
-
-  int end_col = 0 != loc->last_column ? loc->last_column - 1 : 0;
-  if (loc->first_line < loc->last_line)
-    fprintf (out, "-%d.%d", loc->last_line, end_col);
-  else if (loc->first_column < end_col)
-    fprintf (out, "-%d", end_col);
-}
-
-
 /*----------.
 | Scanner.  |
 `----------*/
@@ -369,7 +345,7 @@ yylex (const char **line, YYSTYPE *yylval, YYLTYPE *yylloc,
 
       // Stray characters.
     default:
-      yyerror (yylloc, uctx, _("syntax error: invalid character: %c"), c);
+      yyerror (yylloc, uctx, "syntax error: invalid character: %c", c);
       return TOK_YYerror;
     }
 }
@@ -427,7 +403,7 @@ yyreport_syntax_error (const yypcontext_t *ctx, const user_context *uctx)
     // %@: location.
     if (format[0] == '%' && format[1] == '@')
       {
-        YYLOCATION_PRINT (stderr, loc);
+        YY_LOCATION_PRINT (stderr, *loc);
         format += 2;
       }
     // %u: unexpected token.
@@ -466,12 +442,12 @@ yyreport_syntax_error (const yypcontext_t *ctx, const user_context *uctx)
 
 
 // Called by yyparse on error.
-void yyerror (const YYLTYPE *loc, const user_context *uctx, char const *format, ...)
+void yyerror (YYLTYPE *loc, const user_context *uctx, char const *format, ...)
 {
   if (uctx->silent)
     return;
 
-  YYLOCATION_PRINT (stderr, loc);
+  YY_LOCATION_PRINT (stderr, *loc);
   fputs (": ", stderr);
   va_list args;
   va_start (args, format);
@@ -662,10 +638,10 @@ main (int argc, char const* argv[])
 #if defined ENABLE_NLS && ENABLE_NLS
   // Set up internationalization.
   setlocale (LC_ALL, "");
-  // Use Bison's standard translation catalog for error messages
+  // Use Bison's standard translation catalogue for error messages
   // (the generated messages).
   bindtextdomain ("bison-runtime", BISON_LOCALEDIR);
-  // The translation catalog of bistromathic is actually included in
+  // The translation catalogue of bistromathic is actually included in
   // Bison's.  In your own project, use the name of your project.
   bindtextdomain ("bison", LOCALEDIR);
   textdomain ("bison");

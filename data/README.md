@@ -79,14 +79,9 @@ skeletons.
 In order to unify the handling of the various aspects of symbols (tag, type
 name, whether terminal, etc.), bison.exe defines one macro per (token,
 field), where field can `has_id`, `id`, etc.: see
-`prepare_symbol_definitions()` in `src/output.c`.
+`prepare_symbols_definitions()` in `src/output.c`.
 
-NUM can be:
-- `empty` to denote the "empty" pseudo-symbol when it exists,
-- `eof`, `error`, or `undef`
-- a symbol number.
-
-FIELD can be:
+The macro `b4_symbol(NUM, FIELD)` gives access to the following FIELDS:
 
 - `has_id`: 0 or 1
   Whether the symbol has an `id`.

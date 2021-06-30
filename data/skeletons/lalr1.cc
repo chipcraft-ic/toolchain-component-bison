@@ -20,7 +20,8 @@ m4_include(b4_skeletonsdir/[c++.m4])
 # api.value.type=variant is valid.
 m4_define([b4_value_type_setup_variant])
 
-# parse.lac
+# Check the value of %define parse.lac, where LAC stands for lookahead
+# correction.
 b4_percent_define_default([[parse.lac]], [[none]])
 b4_percent_define_check_values([[[[parse.lac]], [[full]], [[none]]]])
 b4_define_flag_if([lac])
@@ -153,8 +154,8 @@ m4_define([b4_lex],
 [b4_function_call([yylex],
                   [symbol_type], m4_ifdef([b4_lex_param], b4_lex_param))],
 [b4_function_call([yylex], [int],
-                  [[value_type *], [&yyla.value]][]dnl
-b4_locations_if([, [[location_type *], [&yyla.location]]])dnl
+                  [b4_api_PREFIX[STYPE*], [&yyla.value]][]dnl
+b4_locations_if([, [[location*], [&yyla.location]]])dnl
 m4_ifdef([b4_lex_param], [, ]b4_lex_param))])])
 
 
@@ -173,7 +174,7 @@ b4_variant_if([m4_include(b4_skeletonsdir/[variant.hh])])
 
 # b4_shared_declarations(hh|cc)
 # -----------------------------
-# Declaration that might either go into the header (if --header, $1 = hh)
+# Declaration that might either go into the header (if --defines, $1 = hh)
 # or in the implementation file.
 m4_define([b4_shared_declarations],
 [b4_percent_code_get([[requires]])[
@@ -407,7 +408,7 @@ m4_define([b4_shared_declarations],
       void move (by_state& that);
 
       /// The symbol kind (corresponding to \a state).
-      /// \a ]b4_symbol(empty, kind)[ when empty.
+      /// \a ]b4_symbol(-2, kind)[ when empty.
       symbol_kind_type kind () const YY_NOEXCEPT;
 
       /// The state number used to denote an empty symbol.
@@ -493,21 +494,16 @@ m4_define([b4_shared_declarations],
 ]b4_namespace_close[
 
 ]b4_percent_code_get([[provides]])[
-]])[
-
+]])
 
 ## -------------- ##
 ## Output files.  ##
 ## -------------- ##
 
-# ------------- #
-# Header file.  #
-# ------------- #
-
-]b4_header_if([[
-]b4_output_begin([b4_spec_header_file])[
-]b4_copyright([Skeleton interface for Bison LALR(1) parsers in C++])[
-
+b4_defines_if(
+[b4_output_begin([b4_spec_header_file])
+b4_copyright([Skeleton interface for Bison LALR(1) parsers in C++])
+[
 /**
  ** \file ]b4_spec_mapped_header_file[
  ** Define the ]b4_namespace_ref[::parser class.
@@ -520,14 +516,10 @@ m4_define([b4_shared_declarations],
 ]b4_shared_declarations(hh)[
 ]b4_cpp_guard_close([b4_spec_mapped_header_file])[
 ]b4_output_end[
-]])[
+]])
 
 
-# --------------------- #
-# Implementation file.  #
-# --------------------- #
-
-]b4_output_begin([b4_parser_file_name])[
+b4_output_begin([b4_parser_file_name])[
 ]b4_copyright([Skeleton implementation for Bison LALR(1) parsers in C++])[
 ]b4_disclaimer[
 ]b4_percent_code_get([[top]])[]dnl
@@ -538,7 +530,7 @@ m4_if(b4_prefix, [yy], [],
 
 ]b4_user_pre_prologue[
 
-]b4_header_if([[#include "@basename(]b4_spec_header_file[@)"]],
+]b4_defines_if([[#include "@basename(]b4_spec_header_file[@)"]],
                [b4_shared_declarations([cc])])[
 
 ]b4_user_post_prologue[
@@ -673,7 +665,7 @@ m4_if(b4_prefix, [yy], [],
   ]b4_parser_class[::by_state::kind () const YY_NOEXCEPT
   {
     if (state == empty_state)
-      return ]b4_symbol(empty, kind)[;
+      return ]b4_symbol(-2, kind)[;
     else
       return YY_CAST (symbol_kind_type, yystos_[+state]);
   }
@@ -698,7 +690,7 @@ m4_if(b4_prefix, [yy], [],
     b4_symbol_variant([that.kind ()],
                       [value], [move], [YY_MOVE (that.value)])])[
     // that is emptied.
-    that.kind_ = ]b4_symbol(empty, kind)[;
+    that.kind_ = ]b4_symbol(-2, kind)[;
   }
 
 #if YY_CPLUSPLUS < 201103L
@@ -859,8 +851,8 @@ m4_if(b4_prefix, [yy], [],
     /// The return value of parse ().
     int yyresult;]b4_lac_if([[
 
-    // Discard the LAC context in case there still is one left from a
-    // previous invocation.
+    /// Discard the LAC context in case there still is one left from a
+    /// previous invocation.
     yy_lac_discard_ ("init");]])[
 
 #if YY_EXCEPTIONS
@@ -927,13 +919,13 @@ b4_dollar_popdef])[]dnl
       }
     YY_SYMBOL_PRINT ("Next token is", yyla);
 
-    if (yyla.kind () == ]b4_symbol(error, kind)[)
+    if (yyla.kind () == ]b4_symbol(1, kind)[)
     {
       // The scanner already issued an error message, process directly
       // to error recovery.  But do not keep the error token as
       // lookahead, it is too special and may lead us to an endless
       // loop in error recovery. */
-      yyla.kind_ = ]b4_symbol(undef, kind)[;
+      yyla.kind_ = ]b4_symbol(2, kind)[;
       goto yyerrlab1;
     }
 
@@ -943,7 +935,7 @@ b4_dollar_popdef])[]dnl
     if (yyn < 0 || yylast_ < yyn || yycheck_[yyn] != yyla.kind ())
       {]b4_lac_if([[
         if (!yy_lac_establish_ (yyla.kind ()))
-          goto yyerrlab;]])[
+           goto yyerrlab;]])[
         goto yydefault;
       }
 
@@ -954,7 +946,7 @@ b4_dollar_popdef])[]dnl
         if (yy_table_value_is_error_ (yyn))
           goto yyerrlab;]b4_lac_if([[
         if (!yy_lac_establish_ (yyla.kind ()))
-          goto yyerrlab;
+           goto yyerrlab;
 ]])[
         yyn = -yyn;
         goto yyreduce;
@@ -987,11 +979,11 @@ b4_dollar_popdef])[]dnl
     yylen = yyr2_[yyn];
     {
       stack_symbol_type yylhs;
-      yylhs.state = yy_lr_goto_state_ (yystack_[yylen].state, yyr1_[yyn]);]b4_variant_if([[
+      yylhs.state = yy_lr_goto_state_ (yystack_[yylen].state, yyr1_[yyn]);]b4_variant_if([
       /* Variants are always initialized to an empty instance of the
          correct type. The default '$$ = $1' action is NOT applied
          when using variants.  */
-      ]b4_symbol_variant([[yyr1_@{yyn@}]], [yylhs.value], [emplace])], [[
+      b4_symbol_variant([[yyr1_@{yyn@}]], [yylhs.value], [emplace])], [
       /* If YYLEN is nonzero, implement the default value of the
          action: '$$ = $1'.  Otherwise, use the top of the stack.
 
@@ -1001,7 +993,7 @@ b4_dollar_popdef])[]dnl
       if (yylen)
         yylhs.value = yystack_@{yylen - 1@}.value;
       else
-        yylhs.value = yystack_@{0@}.value;]])[
+        yylhs.value = yystack_@{0@}.value;])[
 ]b4_locations_if([dnl
 [
       // Default location.
@@ -1070,7 +1062,7 @@ b4_dollar_popdef])[]dnl
            error, discard it.  */
 
         // Return failure if at end of input.
-        if (yyla.kind () == ]b4_symbol(eof, kind)[)
+        if (yyla.kind () == ]b4_symbol(0, kind)[)
           YYABORT;
         else if (!yyla.empty ())
           {
@@ -1111,9 +1103,9 @@ b4_dollar_popdef])[]dnl
         yyn = yypact_[+yystack_[0].state];
         if (!yy_pact_value_is_default_ (yyn))
           {
-            yyn += ]b4_symbol(error, kind)[;
+            yyn += ]b4_symbol(1, kind)[;
             if (0 <= yyn && yyn <= yylast_
-                && yycheck_[yyn] == ]b4_symbol(error, kind)[)
+                && yycheck_[yyn] == ]b4_symbol(1, kind)[)
               {
                 yyn = yytable_[yyn];
                 if (0 < yyn)
@@ -1305,8 +1297,8 @@ b4_dollar_popdef])[]dnl
     for (int yyx = 0; yyx < YYNTOKENS; ++yyx)
       {
         symbol_kind_type yysym = YY_CAST (symbol_kind_type, yyx);
-        if (yysym != ]b4_symbol(error, kind)[
-            && yysym != ]b4_symbol(undef, kind)[
+        if (yysym != ]b4_symbol(1, kind)[
+            && yysym != ]b4_symbol(2, kind)[
             && yyparser_.yy_lac_check_ (yysym))
           {
             if (!yyarg)
@@ -1328,7 +1320,7 @@ b4_dollar_popdef])[]dnl
         int yychecklim = yylast_ - yyn + 1;
         int yyxend = yychecklim < YYNTOKENS ? yychecklim : YYNTOKENS;
         for (int yyx = yyxbegin; yyx < yyxend; ++yyx)
-          if (yycheck_[yyx + yyn] == yyx && yyx != ]b4_symbol(error, kind)[
+          if (yycheck_[yyx + yyn] == yyx && yyx != ]b4_symbol(1, kind)[
               && !yy_table_value_is_error_ (yytable_[yyx + yyn]))
             {
               if (!yyarg)
@@ -1341,7 +1333,7 @@ b4_dollar_popdef])[]dnl
       }
 ]])[
     if (yyarg && yycount == 0 && 0 < yyargn)
-      yyarg[0] = ]b4_symbol(empty, kind)[;
+      yyarg[0] = ]b4_symbol(-2, kind)[;
     return yycount;
   }
 
@@ -1450,9 +1442,7 @@ b4_dollar_popdef])[]dnl
        follows.  If no initial context is currently established for the
        current lookahead, then check if that lookahead can eventually be
        shifted if syntactic actions continue from the current context.  */
-    if (yy_lac_established_)
-      return true;
-    else
+    if (!yy_lac_established_)
       {
 #if ]b4_api_PREFIX[DEBUG
         YYCDEBUG << "LAC: initial context established for "
@@ -1461,11 +1451,12 @@ b4_dollar_popdef])[]dnl
         yy_lac_established_ = true;
         return yy_lac_check_ (yytoken);
       }
+    return true;
   }
 
   // Discard any previous initial lookahead context.
   void
-  ]b4_parser_class[::yy_lac_discard_ (const char* event)
+  ]b4_parser_class[::yy_lac_discard_ (const char* evt)
   {
    /* Discard any previous initial lookahead context because of Event,
       which may be a lookahead change or an invalidation of the currently
@@ -1481,7 +1472,7 @@ b4_dollar_popdef])[]dnl
     if (yy_lac_established_)
       {
         YYCDEBUG << "LAC: initial context discarded due to "
-                 << event << '\n';
+                 << evt << '\n';
         yy_lac_established_ = false;
       }
   }]])b4_parse_error_bmatch([detailed\|verbose], [[

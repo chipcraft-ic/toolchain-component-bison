@@ -116,7 +116,7 @@ class CalcLexer implements Calc.Lexer {
     case StreamTokenizer.TT_EOL:
       return (int) '\n';
     case StreamTokenizer.TT_WORD:
-      yylval = Integer.parseInt(st.sval);
+      yylval = new Integer(st.sval);
       return NUM;
     default:
       return ttype;

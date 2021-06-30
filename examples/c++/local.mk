@@ -15,7 +15,6 @@
 
 cxxdir = $(docdir)/%D%
 include %D%/calc++/local.mk
-include %D%/glr/local.mk
 
 ## -------- ##
 ## Simple.  ##
@@ -30,7 +29,7 @@ simple_extracted = %D%/simple.yy
 simple_sources = $(simple_extracted)
 extracted += $(simple_extracted)
 
-if ENABLE_CXX11
+if ENABLE_CXX14
   check_PROGRAMS += %D%/simple
   nodist_%C%_simple_SOURCES = $(simple_sources)
 

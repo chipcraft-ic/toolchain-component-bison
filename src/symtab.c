@@ -60,6 +60,8 @@ symbol *errtoken = NULL;
 symbol *undeftoken = NULL;
 symbol *eoftoken = NULL;
 symbol *acceptsymbol = NULL;
+symbol *startsymbol = NULL;
+location startsymbol_loc;
 
 /* Precedence relation graph. */
 static symgraph **prec_nodes;
@@ -305,14 +307,9 @@ is_identifier (uniqstr s)
 uniqstr
 symbol_id_get (symbol const *sym)
 {
-  // There's one weird case: YYerror is the alias, and error is the
-  // base symbol.  Return YYerror in that case.
-  if (sym->alias && is_identifier (sym->alias->tag))
-    return sym->alias->tag;
-  else if (is_identifier (sym->tag))
-    return sym->tag;
-  else
-    return NULL;
+  if (sym->alias)
+    sym = sym->alias;
+  return is_identifier (sym->tag) ? sym->tag : 0;
 }
 
 
@@ -1148,6 +1145,15 @@ symbols_pack (void)
   symbols = xnrealloc (symbols, nsyms, sizeof *symbols);
 
   symbols_token_translations_init ();
+
+  if (startsymbol->content->class == unknown_sym)
+    complain (&startsymbol_loc, fatal,
+              _("the start symbol %s is undefined"),
+              startsymbol->tag);
+  else if (startsymbol->content->class == token_sym)
+    complain (&startsymbol_loc, fatal,
+              _("the start symbol %s is a token"),
+              startsymbol->tag);
 
   // If some user tokens are internationalized, the internal ones
   // should be too.

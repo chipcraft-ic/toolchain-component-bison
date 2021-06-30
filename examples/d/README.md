@@ -5,11 +5,8 @@ This directory contains examples of Bison grammar files in D.
 You can run `make` to compile these examples.  And `make clean` to tidy
 afterwards.
 
-## d/simple.y
-The usual calculator.
-
 ## d/calc.y
-A richer implementation of the calculator, with location tracking.
+The usual calculator.
 
 <!---
 

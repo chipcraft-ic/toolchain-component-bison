@@ -94,28 +94,28 @@ m4_define([b4_variant_includes],
 
 # b4_value_type_declare
 # ---------------------
-# Define value_type.
+# Define semantic_type.
 m4_define([b4_value_type_declare],
 [[  /// A buffer to store and retrieve objects.
   ///
   /// Sort of a variant, but does not keep track of the nature
   /// of the stored data, since that knowledge is available
   /// via the current parser state.
-  class value_type
+  class semantic_type
   {
   public:
     /// Type of *this.
-    typedef value_type self_type;
+    typedef semantic_type self_type;
 
     /// Empty construction.
-    value_type () YY_NOEXCEPT
-      : yyraw_ ()]b4_parse_assert_if([
+    semantic_type () YY_NOEXCEPT
+      : yybuffer_ ()]b4_parse_assert_if([
       , yytypeid_ (YY_NULLPTR)])[
     {}
 
     /// Construct and fill.
     template <typename T>
-    value_type (YY_RVREF (T) t)]b4_parse_assert_if([
+    semantic_type (YY_RVREF (T) t)]b4_parse_assert_if([
       : yytypeid_ (&typeid (T))])[
     {]b4_parse_assert_if([[
       ]b4_assert[ (sizeof (T) <= size);]])[
@@ -124,13 +124,13 @@ m4_define([b4_value_type_declare],
 
 #if 201103L <= YY_CPLUSPLUS
     /// Non copyable.
-    value_type (const self_type&) = delete;
+    semantic_type (const self_type&) = delete;
     /// Non copyable.
     self_type& operator= (const self_type&) = delete;
 #endif
 
     /// Destruction, allowed only if empty.
-    ~value_type () YY_NOEXCEPT
+    ~semantic_type () YY_NOEXCEPT
     {]b4_parse_assert_if([
       ]b4_assert[ (!yytypeid_);
     ])[}
@@ -274,7 +274,7 @@ m4_define([b4_value_type_declare],
   private:
 #if YY_CPLUSPLUS < 201103L
     /// Non copyable.
-    value_type (const self_type&);
+    semantic_type (const self_type&);
     /// Non copyable.
     self_type& operator= (const self_type&);
 #endif
@@ -284,7 +284,7 @@ m4_define([b4_value_type_declare],
     T*
     yyas_ () YY_NOEXCEPT
     {
-      void *yyp = yyraw_;
+      void *yyp = yybuffer_.yyraw;
       return static_cast<T*> (yyp);
      }
 
@@ -293,7 +293,7 @@ m4_define([b4_value_type_declare],
     const T*
     yyas_ () const YY_NOEXCEPT
     {
-      const void *yyp = yyraw_;
+      const void *yyp = yybuffer_.yyraw;
       return static_cast<const T*> (yyp);
      }
 
@@ -308,10 +308,10 @@ m4_define([b4_value_type_declare],
     union
     {
       /// Strongest alignment constraints.
-      long double yyalign_me_;
+      long double yyalign_me;
       /// A buffer large enough to store any of the semantic values.
-      char yyraw_[size];
-    };]b4_parse_assert_if([
+      char yyraw[size];
+    } yybuffer_;]b4_parse_assert_if([
 
     /// Whether the content is built: if defined, the name of the stored type.
     const std::type_info *yytypeid_;])[

@@ -247,6 +247,11 @@ extern symbol *eoftoken;
    $accept: start-symbol $end */
 extern symbol *acceptsymbol;
 
+/** The user start symbol. */
+extern symbol *startsymbol;
+/** The location of the \c \%start declaration.  */
+extern location startsymbol_loc;
+
 /** Whether a symbol declared with a type tag.  */
 extern bool tag_seen;
 

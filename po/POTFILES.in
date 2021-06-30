@@ -14,7 +14,6 @@ src/main.c
 src/muscle-tab.c
 src/parse-gram.y
 src/print-graph.c
-src/print-xml.c
 src/print.c
 src/reader.c
 src/reduce.c

@@ -127,12 +127,7 @@ m4_define([b4_lex],
 # b4_user_args
 # ------------
 m4_define([b4_user_args],
-[m4_ifset([b4_parse_param], [, b4_user_args_no_comma])])
-
-# b4_user_args_no_comma
-# ---------------------
-m4_define([b4_user_args_no_comma],
-[m4_ifset([b4_parse_param], [b4_args(b4_parse_param)])])
+[m4_ifset([b4_parse_param], [, b4_args(b4_parse_param)])])
 
 
 # b4_user_formals
@@ -163,20 +158,13 @@ m4_popdef([$2])dnl
 m4_popdef([$1])dnl
 ])])
 
-
-# b4_use(EXPR)
-# ------------
-# Pacify the compiler about some maybe unused value.
-m4_define([b4_use],
-[YY_USE ($1)])
-
 # b4_parse_param_use([VAL], [LOC])
 # --------------------------------
 # 'YY_USE' VAL, LOC if locations are enabled, and all the parse-params.
 m4_define([b4_parse_param_use],
-[m4_ifvaln([$1], [  b4_use([$1]);])dnl
-b4_locations_if([m4_ifvaln([$2], [  b4_use([$2]);])])dnl
-b4_parse_param_for([Decl], [Formal], [  b4_use(Formal);
+[m4_ifvaln([$1], [  YY_USE ([$1]);])dnl
+b4_locations_if([m4_ifvaln([$2], [  YY_USE ([$2]);])])dnl
+b4_parse_param_for([Decl], [Formal], [  YY_USE (Formal);
 ])dnl
 ])
 
@@ -415,18 +403,12 @@ dnl use C' _Noreturn in C++, to avoid -Wc11-extensions warnings.
 # define YY_USE(E) /* empty */
 #endif
 
+#if defined __GNUC__ && ! defined __ICC && 407 <= __GNUC__ * 100 + __GNUC_MINOR__
 /* Suppress an incorrect diagnostic about yylval being uninitialized.  */
-#if defined __GNUC__ && ! defined __ICC && 406 <= __GNUC__ * 100 + __GNUC_MINOR__
-# if __GNUC__ * 100 + __GNUC_MINOR__ < 407
-#  define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                           \
-    _Pragma ("GCC diagnostic push")                                     \
-    _Pragma ("GCC diagnostic ignored \"-Wuninitialized\"")
-# else
-#  define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                           \
+# define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                            \
     _Pragma ("GCC diagnostic push")                                     \
     _Pragma ("GCC diagnostic ignored \"-Wuninitialized\"")              \
     _Pragma ("GCC diagnostic ignored \"-Wmaybe-uninitialized\"")
-# endif
 # define YY_IGNORE_MAYBE_UNINITIALIZED_END      \
     _Pragma ("GCC diagnostic pop")
 #else
@@ -506,7 +488,7 @@ m4_define([b4_null], [YY_NULLPTR])
 # -------------------------------------------------------------
 # Define "yy<TABLE-NAME>" whose contents is CONTENT.
 m4_define([b4_integral_parser_table_define],
-[m4_ifvaln([$3], [b4_comment([$3])])dnl
+[m4_ifvaln([$3], [b4_comment([$3], [  ])])dnl
 static const b4_int_type_for([$2]) yy$1[[]] =
 {
   $2
@@ -525,7 +507,7 @@ static const b4_int_type_for([$2]) yy$1[[]] =
 m4_define([b4_symbol(-2, id)],  [b4_api_PREFIX[][EMPTY]])
 m4_define([b4_symbol(-2, tag)], [[No symbol.]])
 
-m4_if(b4_symbol(eof, id), [YYEOF],
+m4_if(b4_symbol(0, id), [YYEOF],
      [m4_define([b4_symbol(0, id)],  [b4_api_PREFIX[][EOF]])])
 m4_define([b4_symbol(1, id)],  [b4_api_PREFIX[][error]])
 m4_define([b4_symbol(2, id)],  [b4_api_PREFIX[][UNDEF]])
@@ -542,7 +524,7 @@ m4_define([b4_token_define],
 # Output the definition of the tokens.
 m4_define([b4_token_defines],
 [[/* Token kinds.  */
-#define ]b4_symbol(empty, [id])[ -2
+#define ]b4_symbol([-2], [id])[ -2
 ]m4_join([
 ], b4_symbol_map([b4_token_define]))
 ])
@@ -570,7 +552,7 @@ m4_define([b4_token_enums],
 # define ]b4_api_PREFIX[TOKENTYPE
   enum ]b4_api_prefix[tokentype
   {
-    ]b4_symbol(empty, [id])[ = -2,
+    ]b4_symbol([-2], [id])[ = -2,
 ]b4_symbol_foreach([b4_token_enum])dnl
 [  };
   typedef enum ]b4_api_prefix[tokentype ]b4_api_prefix[token_kind_t;
@@ -620,7 +602,7 @@ m4_define([b4_declare_symbol_enum],
 [[/* Symbol kind.  */
 enum yysymbol_kind_t
 {
-  ]b4_symbol(empty, [kind_base])[ = -2,
+  ]b4_symbol([-2], kind_base)[ = -2,
 ]b4_symbol_foreach([b4_symbol_enum])dnl
 [};
 typedef enum yysymbol_kind_t yysymbol_kind_t;
@@ -761,6 +743,13 @@ yy_symbol_value_print (FILE *yyo,
 ]b4_parse_param_use([yyoutput], [yylocationp])dnl
 [  if (!yyvaluep)
     return;]
+dnl glr.c does not feature yytoknum.
+m4_if(b4_skeleton, ["yacc.c"],
+[[# ifdef YYPRINT
+  if (yykind < YYNTOKENS)
+    YYPRINT (yyo, yytoknum[yykind], *yyvaluep);
+# endif
+]])dnl
 b4_percent_code_get([[pre-printer]])dnl
   YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
   b4_symbol_actions([printer])
@@ -781,7 +770,7 @@ yy_symbol_print (FILE *yyo,
   YYFPRINTF (yyo, "%s %s (",
              yykind < YYNTOKENS ? "token" : "nterm", yysymbol_name (yykind));
 
-]b4_locations_if([  YYLOCATION_PRINT (yyo, yylocationp);
+]b4_locations_if([  YY_LOCATION_PRINT (yyo, *yylocationp);
   YYFPRINTF (yyo, ": ");
 ])dnl
 [  yy_symbol_value_print (yyo, yykind, yyvaluep]dnl
@@ -968,7 +957,7 @@ struct ]b4_api_PREFIX[LTYPE
 
 # b4_declare_yylstype
 # -------------------
-# Declarations that might either go into the header (if --header) or
+# Declarations that might either go into the header (if --defines) or
 # in the parser body.  Declare YYSTYPE/YYLTYPE, and yylval/yylloc.
 m4_define([b4_declare_yylstype],
 [b4_value_type_define[]b4_locations_if([
@@ -1038,24 +1027,17 @@ m4_define([b4_yylloc_default_define],
 #endif
 ]])
 
-# b4_yylocation_print_define
-# --------------------------
-# Define YYLOCATION_PRINT.
-m4_define([b4_yylocation_print_define],
+# b4_yy_location_print_define
+# ---------------------------
+# Define YY_LOCATION_PRINT.
+m4_define([b4_yy_location_print_define],
 [b4_locations_if([[
-/* YYLOCATION_PRINT -- Print the location on the stream.
+/* YY_LOCATION_PRINT -- Print the location on the stream.
    This macro was not mandated originally: define only if we know
    we won't break user code: when these are the locations we know.  */
 
-# ifndef YYLOCATION_PRINT
-
-#  if defined YY_LOCATION_PRINT
-
-   /* Temporary convenience wrapper in case some people defined the
-      undocumented and private YY_LOCATION_PRINT macros.  */
-#   define YYLOCATION_PRINT(File, Loc)  YY_LOCATION_PRINT(File, *(Loc))
-
-#  elif defined ]b4_api_PREFIX[LTYPE_IS_TRIVIAL && ]b4_api_PREFIX[LTYPE_IS_TRIVIAL
+# ifndef YY_LOCATION_PRINT
+#  if defined ]b4_api_PREFIX[LTYPE_IS_TRIVIAL && ]b4_api_PREFIX[LTYPE_IS_TRIVIAL
 
 /* Print *YYLOCP on YYO.  Private, do not rely on its existence. */
 
@@ -1083,23 +1065,19 @@ yy_location_print_ (FILE *yyo, YYLTYPE const * const yylocp)
         res += YYFPRINTF (yyo, "-%d", end_col);
     }
   return res;
-}
+ }
 
-#   define YYLOCATION_PRINT  yy_location_print_
-
-    /* Temporary convenience wrapper in case some people defined the
-       undocumented and private YY_LOCATION_PRINT macros.  */
-#   define YY_LOCATION_PRINT(File, Loc)  YYLOCATION_PRINT(File, &(Loc))
+#   define YY_LOCATION_PRINT(File, Loc)          \
+  yy_location_print_ (File, &(Loc))
 
 #  else
-
-#   define YYLOCATION_PRINT(File, Loc) ((void) 0)
-    /* Temporary convenience wrapper in case some people defined the
-       undocumented and private YY_LOCATION_PRINT macros.  */
-#   define YY_LOCATION_PRINT  YYLOCATION_PRINT
-
+#   define YY_LOCATION_PRINT(File, Loc) ((void) 0)
 #  endif
-# endif /* !defined YYLOCATION_PRINT */]])
+# endif /* !defined YY_LOCATION_PRINT */]],
+[[/* This macro is provided for backward compatibility. */
+# ifndef YY_LOCATION_PRINT
+#  define YY_LOCATION_PRINT(File, Loc) ((void) 0)
+# endif]])
 ])
 
 # b4_yyloc_default

@@ -38,9 +38,8 @@
 #include "output.h"
 #include "uniqstr.h"
 
-bool header_flag = false;
+bool defines_flag = false;
 bool graph_flag = false;
-bool html_flag = false;
 bool xml_flag = false;
 bool no_lines_flag = false;
 bool token_table_flag = false;
@@ -423,9 +422,11 @@ Tuning the Parser:\n\
 "), stdout);
       putc ('\n', stdout);
 
+      /* Keep -d and --defines separate so that ../build-aux/cross-options.pl
+       * won't assume that -d also takes an argument.  */
       fputs (_("\
 Output Files:\n\
-  -H, --header=[FILE]           also produce a header file\n\
+      --defines[=FILE]          also produce a header file\n\
   -d                            likewise but cannot specify FILE (for POSIX Yacc)\n\
   -r, --report=THINGS           also produce details on the automaton\n\
       --report-file=FILE        write report to FILE\n\
@@ -433,7 +434,6 @@ Output Files:\n\
   -b, --file-prefix=PREFIX      specify a PREFIX for output files\n\
   -o, --output=FILE             leave output to FILE\n\
   -g, --graph[=FILE]            also output a graph of the automaton\n\
-      --html[=FILE]             also output an HTML report of the automaton\n\
   -x, --xml[=FILE]              also output an XML report of the automaton\n\
   -M, --file-prefix-map=OLD=NEW replace prefix OLD with NEW when writing file paths\n\
                                 in output files\n\
@@ -544,7 +544,6 @@ language_argmatch (char const *arg, int prio, location loc)
 static char const short_options[] =
   "D:"
   "F:"
-  "H::"
   "L:"
   "S:"
   "T::"
@@ -573,7 +572,6 @@ enum
 {
   COLOR_OPTION = CHAR_MAX + 1,
   FIXED_OUTPUT_FILES_OPTION,
-  HTML_OPTION,
   LOCATIONS_OPTION,
   PRINT_DATADIR_OPTION,
   PRINT_LOCALEDIR_OPTION,
@@ -610,7 +608,6 @@ static struct option const long_options[] =
   { "yacc",           no_argument,         0, 'y' },
 
   /* Output Files. */
-  { "header",          optional_argument,   0,   'H' },
   { "defines",         optional_argument,   0,   'd' },
   { "report",          required_argument,   0,   'r' },
   { "report-file",     required_argument,   0,   REPORT_FILE_OPTION },
@@ -618,7 +615,6 @@ static struct option const long_options[] =
   { "file-prefix",     required_argument,   0,   'b' },
   { "output",          required_argument,   0,   'o' },
   { "graph",           optional_argument,   0,   'g' },
-  { "html",            optional_argument,   0,   HTML_OPTION },
   { "xml",             optional_argument,   0,   'x' },
   { "file-prefix-map", required_argument,   0,   'M' },
 
@@ -722,16 +718,6 @@ getargs (int argc, char *argv[])
         }
         break;
 
-      case 'H':
-      case 'd':
-        header_flag = true;
-        if (optarg)
-          {
-            free (spec_header_file);
-            spec_header_file = xstrdup (optarg);
-          }
-        break;
-
       case 'L':
         language_argmatch (optarg, command_line_prio, loc);
         break;
@@ -774,6 +760,16 @@ getargs (int argc, char *argv[])
 
       case 'b':
         spec_file_prefix = optarg;
+        break;
+
+      case 'd':
+        /* Here, the -d and --defines options are differentiated.  */
+        defines_flag = true;
+        if (optarg)
+          {
+            free (spec_header_file);
+            spec_header_file = xstrdup (optarg);
+          }
         break;
 
       case 'g':
@@ -840,16 +836,6 @@ getargs (int argc, char *argv[])
 
       case COLOR_OPTION:
         /* Handled in getargs_colors. */
-        break;
-
-      case HTML_OPTION:
-        html_flag = true;
-        xml_flag = true;
-        if (optarg)
-          {
-            free (spec_html_file);
-            spec_html_file = xstrdup (optarg);
-          }
         break;
 
       case FIXED_OUTPUT_FILES_OPTION:

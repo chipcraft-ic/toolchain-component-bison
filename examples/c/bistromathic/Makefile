@@ -10,7 +10,7 @@ XSLTPROC = xsltproc
 CPPFLAGS = -I/opt/local/include
 LDFLAGS = -L/opt/local/lib
 
-# Find the translation catalog for Bison's generated messagess.
+# Find the translation catalogue for Bison's generated messagess.
 BISON_LOCALEDIR = $(shell $(BISON) $(BISON_FLAGS) --print-localedir)
 CPPFLAGS += -DENABLE_NLS -DBISON_LOCALEDIR='"$(BISON_LOCALEDIR)"'
 
@@ -19,7 +19,7 @@ LIBS = -lreadline -lm # In some environments, -lintl is needed.
 all: $(BASE)
 
 %.c %.h %.xml %.gv: %.y
-	$(BISON) $(BISONFLAGS) --header --xml --graph=$*.gv -o $*.c $<
+	$(BISON) $(BISONFLAGS) --defines --xml --graph=$*.gv -o $*.c $<
 
 $(BASE): parse.o
 	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(LIBS)

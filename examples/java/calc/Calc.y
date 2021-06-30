@@ -23,16 +23,10 @@
 %define api.parser.public
 %define api.push-pull push
 
-// Customized syntax error messages (see reportSyntaxError)...
 %define parse.error custom
-
-// ... with locations...
-%locations
-
-// ... and accurate list of expected tokens.
-%define parse.lac full
-
 %define parse.trace
+
+%locations
 
 %code imports {
   import java.io.BufferedReader;
@@ -205,7 +199,7 @@ class CalcLexer implements Calc.Lexer {
       end.column = 0;
       return EOL;
     case StreamTokenizer.TT_WORD:
-      yylval = Integer.parseInt(st.sval);
+      yylval = new Integer(st.sval);
       end.set(reader.getPreviousPosition());
       return NUM;
     case ' ': case '\t':

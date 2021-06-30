@@ -55,17 +55,14 @@ item_print (item_number *item, rule const *previous_rule, FILE *out)
   rule const *r = item_rule (item);
   rule_lhs_print (r, previous_rule ? previous_rule->lhs : NULL, out);
 
+  for (item_number *sp = r->rhs; sp < item; sp++)
+    fprintf (out, " %s", symbols[*sp]->tag);
+  fprintf (out, " %s", dot);
   if (0 <= *r->rhs)
-    {
-      // Non-empty rhs.
-      for (item_number *sp = r->rhs; sp < item; sp++)
-        fprintf (out, " %s", symbols[*sp]->tag);
-      fprintf (out, " %s", dot);
-      for (item_number *sp = item; 0 <= *sp; ++sp)
-        fprintf (out, " %s", symbols[*sp]->tag);
-    }
+    for (item_number *sp = item; 0 <= *sp; ++sp)
+      fprintf (out, " %s", symbols[*sp]->tag);
   else
-    fprintf (out, " %s %s", empty, dot);
+    fprintf (out, " %%empty");
 }
 
 
@@ -125,7 +122,7 @@ rule_rhs_print (rule const *r, FILE *out)
     for (item_number *rhsp = r->rhs; 0 <= *rhsp; ++rhsp)
       fprintf (out, " %s", symbols[*rhsp]->tag);
   else
-    fprintf (out, " %s", empty);
+    fputs (" %empty", out);
 }
 
 static void
@@ -158,22 +155,11 @@ void
 ritem_print (FILE *out)
 {
   fputs ("RITEM\n", out);
-  bool first = true;
   for (int i = 0; i < nritems; ++i)
-    {
-      if (first)
-        {
-          fprintf (out, "  %d: ", i);
-          first = false;
-        }
-      if (ritem[i] >= 0)
-        fprintf (out, "  %s", symbols[ritem[i]]->tag);
-      else
-        {
-          fprintf (out, "  (rule %d)\n", item_number_as_rule_number (ritem[i]));
-          first = true;
-        }
-    }
+    if (ritem[i] >= 0)
+      fprintf (out, "  %s", symbols[ritem[i]]->tag);
+    else
+      fprintf (out, "  (rule %d)\n", item_number_as_rule_number (ritem[i]));
   fputs ("\n\n", out);
 }
 

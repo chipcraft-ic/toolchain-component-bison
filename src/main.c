@@ -90,12 +90,8 @@ main (int argc, char *argv[])
   uniqstrs_new ();
   muscle_init ();
   complain_init ();
-  code_scanner_init ();
 
   getargs (argc, argv);
-
-  if (trace_flag)
-    fprintf (stderr, "bison (GNU Bison) %s\n", VERSION);
 
   timevar_enabled = trace_flag & trace_time;
   timevar_init ();
@@ -192,19 +188,11 @@ main (int argc, char *argv[])
         }
 
       /* Output xml.  */
-      if (html_flag || xml_flag)
+      if (xml_flag)
         {
           timevar_push (tv_xml);
           print_xml ();
           timevar_pop (tv_xml);
-        }
-
-      /* Output html.  */
-      if (html_flag)
-        {
-          timevar_push (tv_html);
-          print_html ();
-          timevar_pop (tv_html);
         }
     }
 

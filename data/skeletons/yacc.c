@@ -22,7 +22,6 @@ m4_pushdef([b4_copyright_years],
 
 m4_include(b4_skeletonsdir/[c.m4])
 
-
 ## ---------- ##
 ## api.pure.  ##
 ## ---------- ##
@@ -116,16 +115,6 @@ m4_ifset([b4_parse_param], [b4_args(b4_parse_param), ])])
 ## ----------------- ##
 
 
-# b4_accept([SYMBOL-NUM])
-# -----------------------
-# Used in actions of the rules of accept, the initial symbol, to call
-# YYACCEPT.  If SYMBOL-NUM is specified, run "yyvalue->SLOT = $2;"
-# before, using the slot of SYMBOL-NUM.
-m4_define([b4_accept],
-[m4_ifval([$1],
-          [b4_symbol_value(yyimpl->yyvalue, [$1]) = b4_rhs_value(2, 1, [$1]); ]) YYACCEPT])
-
-
 # b4_lhs_value(SYMBOL-NUM, [TYPE])
 # --------------------------------
 # See README.
@@ -165,61 +154,14 @@ m4_define([b4_rhs_location],
 ## Declarations.  ##
 ## -------------- ##
 
-# _b4_declare_sub_yyparse(START-SYMBOL-NUM, SWITCHING-TOKEN-SYMBOL-NUM)
-# ---------------------------------------------------------------------
-# Define the return type of the parsing function for SYMBOL-NUM, and
-# declare its parsing function.
-m4_define([_b4_declare_sub_yyparse],
-[[
-// Return type when parsing one ]_b4_symbol($1, tag)[.
-typedef struct
-{]b4_symbol_if([$1], [has_type], [[
-  ]_b4_symbol($1, type)[ yyvalue;]])[
-  int yystatus;
-  int yynerrs;
-} ]b4_prefix[parse_]_b4_symbol($1, id)[_t;
-
-// Parse one ]_b4_symbol($1, tag)[.
-]b4_prefix[parse_]_b4_symbol($1, id)[_t ]b4_prefix[parse_]_b4_symbol($1, id)[ (]m4_ifset([b4_parse_param], [b4_formals(b4_parse_param)], [void])[);
-]])
-
-
-# _b4_first_switching_token
-# -------------------------
-m4_define([b4_first], [$1])
-m4_define([b4_second], [$2])
-m4_define([_b4_first_switching_token],
-[b4_second(b4_first(b4_start_symbols))])
-
-
-# _b4_define_sub_yyparse(START-SYMBOL-NUM, SWITCHING-TOKEN-SYMBOL-NUM)
-# --------------------------------------------------------------------
-# Define the parsing function for START-SYMBOL-NUM.
-m4_define([_b4_define_sub_yyparse],
-[[
-]b4_prefix[parse_]_b4_symbol($1, id)[_t
-]b4_prefix[parse_]_b4_symbol($1, id)[ (]m4_ifset([b4_parse_param], [b4_formals(b4_parse_param)], [void])[)
-{
-  ]b4_prefix[parse_]_b4_symbol($1, id)[_t yyres;
-  yy_parse_impl_t yyimpl;
-  yyres.yystatus = yy_parse_impl (]b4_symbol($2, id)[, &yyimpl]m4_ifset([b4_parse_param],
-                           [[, ]b4_args(b4_parse_param)])[);]b4_symbol_if([$1], [has_type], [[
-  yyres.yyvalue = yyimpl.yyvalue.]b4_symbol($1, slot)[;]])[
-  yyres.yynerrs = yyimpl.yynerrs;
-  return yyres;
-}
-]])
-
-
 # b4_declare_scanner_communication_variables
 # ------------------------------------------
 # Declare the variables that are global, or local to YYPARSE if
 # pure-parser.
 m4_define([b4_declare_scanner_communication_variables], [[
-]m4_ifdef([b4_start_symbols], [],
-[[/* Lookahead token kind.  */
+/* Lookahead token kind.  */
 int yychar;
-]])[
+
 ]b4_pure_if([[
 /* The semantic value of the lookahead symbol.  */
 /* Default value used for initialization, for pacifying older GCCs
@@ -334,14 +276,11 @@ int ]b4_prefix[push_parse (]b4_prefix[pstate *ps]b4_pure_if([[,
 void ]b4_prefix[pstate_delete (]b4_prefix[pstate *ps);
 ]])
 
-
 # _b4_declare_yyparse
 # -------------------
 # When not the push parser.
 m4_define([_b4_declare_yyparse],
-[[int ]b4_prefix[parse (]m4_ifset([b4_parse_param], [b4_formals(b4_parse_param)], [void])[);
-]m4_ifdef([b4_start_symbols],
-          [m4_map([_b4_declare_sub_yyparse], m4_defn([b4_start_symbols]))])])
+[[int ]b4_prefix[parse (]m4_ifset([b4_parse_param], [b4_formals(b4_parse_param)], [void])[);]])
 
 
 # b4_declare_yyparse
@@ -352,10 +291,9 @@ m4_define([b4_declare_yyparse],
 ])
 
 
-
 # b4_shared_declarations
 # ----------------------
-# Declaration that might either go into the header (if --header)
+# Declaration that might either go into the header (if --defines)
 # or open coded in the parser body.
 m4_define([b4_shared_declarations],
 [b4_cpp_guard_open([b4_spec_mapped_header_file])[
@@ -392,13 +330,13 @@ m4_if(b4_spec_header_file, [y.tab.h], [],
 ## -------------- ##
 
 
-b4_header_if([[
+b4_defines_if([[
 ]b4_output_begin([b4_spec_header_file])[
 ]b4_copyright([Bison interface for Yacc-like parsers in C])[
 ]b4_disclaimer[
 ]b4_shared_declarations[
 ]b4_output_end[
-]])# b4_header_if
+]])# b4_defines_if
 
 b4_output_begin([b4_parser_file_name])[
 ]b4_copyright([Bison implementation for Yacc-like parsers in C])[
@@ -703,6 +641,15 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }]])[
 #endif
 
+#ifdef YYPRINT
+/* YYTOKNUM[NUM] -- (External) token number corresponding to the
+   (internal) symbol number NUM (which must be that of a token).  */
+static const ]b4_int_type_for([b4_toknum])[ yytoknum[] =
+{
+  ]b4_toknum[
+};
+#endif
+
 #define YYPACT_NINF (]b4_pact_ninf[)
 
 #define yypact_value_is_default(Yyn) \
@@ -718,19 +665,18 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 enum { YYENOMEM = -2 };
 
 #define yyerrok         (yyerrstatus = 0)
-#define yyclearin       (yychar = ]b4_symbol(empty, id)[)
+#define yyclearin       (yychar = ]b4_symbol(-2, id)[)
 
 #define YYACCEPT        goto yyacceptlab
 #define YYABORT         goto yyabortlab
 #define YYERROR         goto yyerrorlab
-#define YYNOMEM         goto yyexhaustedlab
 
 
 #define YYRECOVERING()  (!!yyerrstatus)
 
 #define YYBACKUP(Token, Value)                                    \
   do                                                              \
-    if (yychar == ]b4_symbol(empty, id)[)                                        \
+    if (yychar == ]b4_symbol(-2, id)[)                                        \
       {                                                           \
         yychar = (Token);                                         \
         yylval = (Value);                                         \
@@ -747,8 +693,8 @@ enum { YYENOMEM = -2 };
   while (0)
 
 /* Backward compatibility with an undocumented macro.
-   Use ]b4_symbol(error, id)[ or ]b4_symbol(undef, id)[. */
-#define YYERRCODE ]b4_symbol(undef, id)[
+   Use ]b4_symbol(1, id)[ or ]b4_symbol(2, id)[. */
+#define YYERRCODE ]b4_symbol(2, id)[
 ]b4_locations_if([[
 ]b4_yylloc_default_define[
 #define YYRHSLOC(Rhs, K) ((Rhs)[K])
@@ -768,7 +714,7 @@ do {                                            \
     YYFPRINTF Args;                             \
 } while (0)
 
-]b4_yylocation_print_define[
+]b4_yy_location_print_define[
 
 # define YY_SYMBOL_PRINT(Title, Kind, Value, Location)                    \
 do {                                                                      \
@@ -979,7 +925,7 @@ do {                                                                    \
       switch (yy_lac (yyesa, &yyes, &yyes_capacity, yyssp, yytoken))    \
         {                                                               \
         case YYENOMEM:                                                  \
-          YYNOMEM;                                                      \
+          goto yyexhaustedlab;                                          \
         case 1:                                                         \
           goto yyerrlab;                                                \
         }                                                               \
@@ -1157,7 +1103,7 @@ yypcontext_expected_tokens (const yypcontext_t *yyctx,
   for (yyx = 0; yyx < YYNTOKENS; ++yyx)
     {
       yysymbol_kind_t yysym = YY_CAST (yysymbol_kind_t, yyx);
-      if (yysym != ]b4_symbol(error, kind)[ && yysym != ]b4_symbol_prefix[YYUNDEF)
+      if (yysym != ]b4_symbol(1, kind)[ && yysym != ]b4_symbol_prefix[YYUNDEF)
         switch (yy_lac (]b4_push_if([[yyps->yyesa, &yyps->yyes, &yyps->yyes_capacity, yyps->yyssp, yysym]],
                                     [[yyctx->yyesa, yyctx->yyes, yyctx->yyes_capacity, yyctx->yyssp, yysym]])[))
           {
@@ -1186,7 +1132,7 @@ yypcontext_expected_tokens (const yypcontext_t *yyctx,
       int yyxend = yychecklim < YYNTOKENS ? yychecklim : YYNTOKENS;
       int yyx;
       for (yyx = yyxbegin; yyx < yyxend; ++yyx)
-        if (yycheck[yyx + yyn] == yyx && yyx != ]b4_symbol(error, kind)[
+        if (yycheck[yyx + yyn] == yyx && yyx != ]b4_symbol(1, kind)[
             && !yytable_value_is_error (yytable[yyx + yyn]))
           {
             if (!yyarg)
@@ -1198,7 +1144,7 @@ yypcontext_expected_tokens (const yypcontext_t *yyctx,
           }
     }]])[
   if (yyarg && yycount == 0 && 0 < yyargn)
-    yyarg[0] = ]b4_symbol(empty, kind)[;
+    yyarg[0] = ]b4_symbol(-2, kind)[;
   return yycount;
 }
 
@@ -1361,7 +1307,7 @@ yy_syntax_error_arguments (const yypcontext_t *yyctx,
        one exception: it will still contain any token that will not be
        accepted due to an error action in a later state.]])[
   */
-  if (yyctx->yytoken != ]b4_symbol(empty, kind)[)
+  if (yyctx->yytoken != ]b4_symbol(-2, kind)[)
     {
       int yyn;]b4_lac_if([[
       YYDPRINTF ((stderr, "Constructing syntax error message\n"));]])[
@@ -1588,31 +1534,8 @@ yypush_parse (yypstate *yyps]b4_pure_if([[,
 | yyparse.  |
 `----------*/
 
-]m4_ifdef([b4_start_symbols],
-[[// Extract data from the parser.
-typedef struct
-{
-  YYSTYPE yyvalue;
-  int yynerrs;
-} yy_parse_impl_t;
-
-// Run a full parse, using YYCHAR as switching token.
-static int
-yy_parse_impl (int yychar, yy_parse_impl_t *yyimpl]m4_ifset([b4_parse_param], [, b4_formals(b4_parse_param)])[);
-
-]m4_map([_b4_define_sub_yyparse], m4_defn([b4_start_symbols]))[
-
 int
-yyparse (]m4_ifset([b4_parse_param], [b4_formals(b4_parse_param)], [void])[)
-{
-  return yy_parse_impl (]b4_symbol(_b4_first_switching_token, id)[, YY_NULLPTR]m4_ifset([b4_parse_param],
-                                                    [[, ]b4_args(b4_parse_param)])[);
-}
-
-static int
-yy_parse_impl (int yychar, yy_parse_impl_t *yyimpl]m4_ifset([b4_parse_param], [, b4_formals(b4_parse_param)])[)]],
-[[int
-yyparse (]m4_ifset([b4_parse_param], [b4_formals(b4_parse_param)], [void])[)]])])[
+yyparse (]m4_ifset([b4_parse_param], [b4_formals(b4_parse_param)], [void])[)]])[
 {]b4_pure_if([b4_declare_scanner_communication_variables
 ])b4_push_if([b4_pure_if([], [[
   int yypushed_char = yychar;
@@ -1627,7 +1550,7 @@ yyparse (]m4_ifset([b4_parse_param], [b4_formals(b4_parse_param)], [void])[)]])]
   /* The return value of yyparse.  */
   int yyresult;
   /* Lookahead symbol kind.  */
-  yysymbol_kind_t yytoken = ]b4_symbol(empty, kind)[;
+  yysymbol_kind_t yytoken = ]b4_symbol(-2, kind)[;
   /* The variables used to return semantic value and location from the
      action routines.  */
   YYSTYPE yyval;]b4_locations_if([[
@@ -1664,9 +1587,7 @@ yyparse (]m4_ifset([b4_parse_param], [b4_formals(b4_parse_param)], [void])[)]])]
 
   YYDPRINTF ((stderr, "Starting parse\n"));
 
-]m4_ifdef([b4_start_symbols], [],
-[[  yychar = ]b4_symbol(empty, id)[; /* Cause a token to be read.  */
-]])[
+  yychar = ]b4_symbol(-2, id)[; /* Cause a token to be read.  */
 ]m4_ifdef([b4_initial_action], [
 b4_dollar_pushdef([m4_define([b4_dollar_dollar_used])yylval], [], [],
                   [b4_push_if([b4_pure_if([*])yypushed_loc], [yylloc])])dnl
@@ -1701,7 +1622,7 @@ yysetstate:
 
   if (yyss + yystacksize - 1 <= yyssp)
 #if !defined yyoverflow && !defined YYSTACK_RELOCATE
-    YYNOMEM;
+    goto yyexhaustedlab;
 #else
     {
       /* Get the current used size of the three stacks, in elements.  */
@@ -1732,7 +1653,7 @@ yysetstate:
 # else /* defined YYSTACK_RELOCATE */
       /* Extend the stack our own way.  */
       if (YYMAXDEPTH <= yystacksize)
-        YYNOMEM;
+        goto yyexhaustedlab;
       yystacksize *= 2;
       if (YYMAXDEPTH < yystacksize)
         yystacksize = YYMAXDEPTH;
@@ -1743,7 +1664,7 @@ yysetstate:
           YY_CAST (union yyalloc *,
                    YYSTACK_ALLOC (YY_CAST (YYSIZE_T, YYSTACK_BYTES (yystacksize))));
         if (! yyptr)
-          YYNOMEM;
+          goto yyexhaustedlab;
         YYSTACK_RELOCATE (yyss_alloc, yyss);
         YYSTACK_RELOCATE (yyvs_alloc, yyvs);]b4_locations_if([
         YYSTACK_RELOCATE (yyls_alloc, yyls);])[
@@ -1767,9 +1688,8 @@ yysetstate:
     }
 #endif /* !defined yyoverflow && !defined YYSTACK_RELOCATE */
 
-]m4_ifdef([b4_start_symbols], [], [[
   if (yystate == YYFINAL)
-    YYACCEPT;]])[
+    YYACCEPT;
 
   goto yybackup;
 
@@ -1789,7 +1709,7 @@ yybackup:
   /* Not known => get a lookahead token if don't already have one.  */
 
   /* YYCHAR is either empty, or end-of-input, or a valid lookahead.  */
-  if (yychar == ]b4_symbol(empty, id)[)
+  if (yychar == ]b4_symbol(-2, id)[)
     {]b4_push_if([[
       if (!yyps->yynew)
         {]b4_use_push_for_pull_if([], [[
@@ -1814,20 +1734,20 @@ yyread_pushed_token:]])[
       yychar = ]b4_lex[;]])[
     }
 
-  if (yychar <= ]b4_symbol(eof, [id])[)
+  if (yychar <= ]b4_symbol(0, [id])[)
     {
-      yychar = ]b4_symbol(eof, [id])[;
-      yytoken = ]b4_symbol(eof, [kind])[;
+      yychar = ]b4_symbol(0, [id])[;
+      yytoken = ]b4_symbol(0, [kind])[;
       YYDPRINTF ((stderr, "Now at end of input.\n"));
     }
-  else if (yychar == ]b4_symbol(error, [id])[)
+  else if (yychar == ]b4_symbol(1, [id])[)
     {
       /* The scanner already issued an error message, process directly
          to error recovery.  But do not keep the error token as
          lookahead, it is too special and may lead us to an endless
          loop in error recovery. */
-      yychar = ]b4_symbol(undef, [id])[;
-      yytoken = ]b4_symbol(error, [kind])[;]b4_locations_if([[
+      yychar = ]b4_symbol(2, [id])[;
+      yytoken = ]b4_symbol(1, [kind])[;]b4_locations_if([[
       yyerror_range[1] = yylloc;]])[
       goto yyerrlab1;
     }
@@ -1850,9 +1770,9 @@ yyread_pushed_token:]])[
   if (yyn <= 0)
     {
       if (yytable_value_is_error (yyn))
-        goto yyerrlab;
-      yyn = -yyn;]b4_lac_if([[
+        goto yyerrlab;]b4_lac_if([[
       YY_LAC_ESTABLISH;]])[
+      yyn = -yyn;
       goto yyreduce;
     }
 
@@ -1870,7 +1790,7 @@ yyread_pushed_token:]])[
   *++yylsp = yylloc;])[
 
   /* Discard the shifted token.  */
-  yychar = ]b4_symbol(empty, id)[;]b4_lac_if([[
+  yychar = ]b4_symbol(-2, id)[;]b4_lac_if([[
   YY_LAC_DISCARD ("shift");]])[
   goto yynewstate;
 
@@ -1961,7 +1881,7 @@ yyreduce:
 yyerrlab:
   /* Make sure we have latest lookahead translation.  See comments at
      user semantic actions for why this is necessary.  */
-  yytoken = yychar == ]b4_symbol(empty, id)[ ? ]b4_symbol(empty, kind)[ : YYTRANSLATE (yychar);
+  yytoken = yychar == ]b4_symbol(-2, id)[ ? ]b4_symbol(-2, kind)[ : YYTRANSLATE (yychar);
   /* If not already recovering from an error, report this error.  */
   if (!yyerrstatus)
     {
@@ -1971,11 +1891,11 @@ yyerrlab:
 [[      {
         yypcontext_t yyctx
           = {]b4_push_if([[yyps]], [[yyssp]b4_lac_if([[, yyesa, &yyes, &yyes_capacity]])])[, yytoken]b4_locations_if([[, &yylloc]])[};]b4_lac_if([[
-        if (yychar != ]b4_symbol(empty, id)[)
+        if (yychar != ]b4_symbol(-2, id)[)
           YY_LAC_ESTABLISH;]])[
         if (yyreport_syntax_error (&yyctx]m4_ifset([b4_parse_param],
-                                   [[, ]b4_args(b4_parse_param)])[) == 2)
-          YYNOMEM;
+                                  [[, ]b4_args(b4_parse_param)])[) == 2)
+          goto yyexhaustedlab;
       }]],
          [simple],
 [[      yyerror (]b4_yyerror_args[YY_("syntax error"));]],
@@ -1984,7 +1904,7 @@ yyerrlab:
           = {]b4_push_if([[yyps]], [[yyssp]b4_lac_if([[, yyesa, &yyes, &yyes_capacity]])])[, yytoken]b4_locations_if([[, &yylloc]])[};
         char const *yymsgp = YY_("syntax error");
         int yysyntax_error_status;]b4_lac_if([[
-        if (yychar != ]b4_symbol(empty, id)[)
+        if (yychar != ]b4_symbol(-2, id)[)
           YY_LAC_ESTABLISH;]])[
         yysyntax_error_status = yysyntax_error (&yymsg_alloc, &yymsg, &yyctx);
         if (yysyntax_error_status == 0)
@@ -2010,7 +1930,7 @@ yyerrlab:
           }
         yyerror (]b4_yyerror_args[yymsgp);
         if (yysyntax_error_status == YYENOMEM)
-          YYNOMEM;
+          goto yyexhaustedlab;
       }]])[
     }
 ]b4_locations_if([[
@@ -2020,17 +1940,17 @@ yyerrlab:
       /* If just tried and failed to reuse lookahead token after an
          error, discard it.  */
 
-      if (yychar <= ]b4_symbol(eof, [id])[)
+      if (yychar <= ]b4_symbol(0, [id])[)
         {
           /* Return failure if at end of input.  */
-          if (yychar == ]b4_symbol(eof, [id])[)
+          if (yychar == ]b4_symbol(0, [id])[)
             YYABORT;
         }
       else
         {
           yydestruct ("Error: discarding",
                       yytoken, &yylval]b4_locations_if([, &yylloc])[]b4_user_args[);
-          yychar = ]b4_symbol(empty, id)[;
+          yychar = ]b4_symbol(-2, id)[;
         }
     }
 
@@ -2047,7 +1967,6 @@ yyerrorlab:
      label yyerrorlab therefore never appears in user code.  */
   if (0)
     YYERROR;
-  ++yynerrs;
 
   /* Do not reclaim the symbols of the rule whose action triggered
      this YYERROR.  */
@@ -2070,8 +1989,8 @@ yyerrlab1:
       yyn = yypact[yystate];
       if (!yypact_value_is_default (yyn))
         {
-          yyn += ]b4_symbol(error, kind)[;
-          if (0 <= yyn && yyn <= YYLAST && yycheck[yyn] == ]b4_symbol(error, kind)[)
+          yyn += ]b4_symbol(1, kind)[;
+          if (0 <= yyn && yyn <= YYLAST && yycheck[yyn] == ]b4_symbol(1, kind)[)
             {
               yyn = yytable[yyn];
               if (0 < yyn)
@@ -2115,7 +2034,7 @@ yyerrlab1:
 `-------------------------------------*/
 yyacceptlab:
   yyresult = 0;
-  goto yyreturnlab;
+  goto yyreturn;
 
 
 /*-----------------------------------.
@@ -2123,23 +2042,25 @@ yyacceptlab:
 `-----------------------------------*/
 yyabortlab:
   yyresult = 1;
-  goto yyreturnlab;
+  goto yyreturn;
 
 
-/*-----------------------------------------------------------.
-| yyexhaustedlab -- YYNOMEM (memory exhaustion) comes here.  |
-`-----------------------------------------------------------*/
+#if ]b4_lac_if([[1]], [b4_parse_error_case([simple], [[!defined yyoverflow]], [[1]])])[
+/*-------------------------------------------------.
+| yyexhaustedlab -- memory exhaustion comes here.  |
+`-------------------------------------------------*/
 yyexhaustedlab:
   yyerror (]b4_yyerror_args[YY_("memory exhausted"));
   yyresult = 2;
-  goto yyreturnlab;
+  goto yyreturn;
+#endif
 
 
-/*----------------------------------------------------------.
-| yyreturnlab -- parsing is finished, clean up and return.  |
-`----------------------------------------------------------*/
-yyreturnlab:
-  if (yychar != ]b4_symbol(empty, id)[)
+/*-------------------------------------------------------.
+| yyreturn -- parsing is finished, clean up and return.  |
+`-------------------------------------------------------*/
+yyreturn:
+  if (yychar != ]b4_symbol(-2, id)[)
     {
       /* Make sure we have latest lookahead translation.  See comments at
          user semantic actions for why this is necessary.  */
@@ -2173,9 +2094,7 @@ yypushreturn:]], [[
     YYSTACK_FREE (yyes);]])])[
 ]b4_parse_error_bmatch([detailed\|verbose],
 [[  if (yymsg != yymsgbuf)
-    YYSTACK_FREE (yymsg);]])[]m4_ifdef([b4_start_symbols], [[
-  if (yyimpl)
-    yyimpl->yynerrs = yynerrs;]])[
+    YYSTACK_FREE (yymsg);]])[
   return yyresult;
 }
 ]b4_push_if([b4_parse_state_variable_macros([b4_macro_undef])])[

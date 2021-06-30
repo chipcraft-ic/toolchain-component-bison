@@ -59,7 +59,7 @@
 
   /* Pretend to be at least that version, to check features published
      in that version while developping it.  */
-  static const char* api_version = "3.8";
+  static const char* api_version = "3.7";
 
   static int current_prec = 0;
   static location current_lhs_loc;
@@ -95,8 +95,8 @@
      string from the scanner (should be CODE). */
   static char const *translate_code_braceless (char *code, location loc);
 
-  /* Handle a %header directive.  */
-  static void handle_header (char const *value);
+  /* Handle a %defines directive.  */
+  static void handle_defines (char const *value);
 
   /* Handle a %error-verbose directive.  */
   static void handle_error_verbose (location const *loc, char const *directive);
@@ -152,7 +152,7 @@
 %define parse.error custom
 %define parse.lac full
 %define parse.trace
-%header
+%defines
 %expect 0
 %verbose
 
@@ -187,19 +187,20 @@
   PERCENT_CODE            "%code"
   PERCENT_DEFAULT_PREC    "%default-prec"
   PERCENT_DEFINE          "%define"
+  PERCENT_DEFINES         "%defines"
   PERCENT_ERROR_VERBOSE   "%error-verbose"
   PERCENT_EXPECT          "%expect"
   PERCENT_EXPECT_RR       "%expect-rr"
-  PERCENT_FILE_PREFIX     "%file-prefix"
   PERCENT_FLAG            "%<flag>"
+  PERCENT_FILE_PREFIX     "%file-prefix"
   PERCENT_GLR_PARSER      "%glr-parser"
-  PERCENT_HEADER          "%header"
   PERCENT_INITIAL_ACTION  "%initial-action"
   PERCENT_LANGUAGE        "%language"
   PERCENT_NAME_PREFIX     "%name-prefix"
   PERCENT_NO_DEFAULT_PREC "%no-default-prec"
   PERCENT_NO_LINES        "%no-lines"
-  PERCENT_NONDETERMINISTIC_PARSER "%nondeterministic-parser"
+  PERCENT_NONDETERMINISTIC_PARSER
+                          "%nondeterministic-parser"
   PERCENT_OUTPUT          "%output"
   PERCENT_PURE_PARSER     "%pure-parser"
   PERCENT_REQUIRE         "%require"
@@ -337,7 +338,8 @@ prologue_declaration:
       muscle_percent_define_insert ($2, @$, $3.kind, $3.chars,
                                     MUSCLE_PERCENT_DEFINE_GRAMMAR_FILE);
     }
-| "%header" string.opt             { handle_header ($2); }
+| "%defines"                       { defines_flag = true; }
+| "%defines" STRING                { handle_defines ($2); }
 | "%error-verbose"                 { handle_error_verbose (&@$, $1); }
 | "%expect" INT_LITERAL            { expected_sr_conflicts = $2; }
 | "%expect-rr" INT_LITERAL         { expected_rr_conflicts = $2; }
@@ -380,9 +382,9 @@ params:
 
 grammar_declaration:
   symbol_declaration
-| "%start" symbols.1
+| "%start" symbol
     {
-      grammar_start_symbols_add ($2);
+      grammar_start_symbol_set ($2, @2);
     }
 | code_props_type "{...}" generic_symlist
     {
@@ -448,7 +450,7 @@ grammar_declaration:
 ;
 
 
-%type <symbol_list*> nterm_decls symbol_decls symbols.1
+%type <symbol_list*> nterm_decls symbol_decls symbol_decl.1
       token_decls token_decls_for_prec
       token_decl.1 token_decl_for_prec.1;
 symbol_declaration:
@@ -462,9 +464,8 @@ symbol_declaration:
       current_class = unknown_sym;
       symbol_list_free ($syms);
     }
-| "%type" { current_class = pct_type_sym; } symbol_decls[syms]
+| "%type" symbol_decls[syms]
     {
-      current_class = unknown_sym;
       symbol_list_free ($syms);
     }
 | precedence_declarator token_decls_for_prec[syms]
@@ -481,12 +482,6 @@ precedence_declarator:
 | "%right"      { $$ = right_assoc; }
 | "%nonassoc"   { $$ = non_assoc; }
 | "%precedence" { $$ = precedence_assoc; }
-;
-
-%type <char*> string.opt;
-string.opt:
-  %empty  { $$ = NULL; }
-| STRING  { $$ = $1; }
 ;
 
 tag.opt:
@@ -630,32 +625,30 @@ token_decl_for_prec:
 
 // A non empty list of typed symbols (for %type).
 symbol_decls:
-  symbols.1[syms]
+  symbol_decl.1[syms]
     {
       $$ = $syms;
     }
-| TAG symbols.1[syms]
+| TAG symbol_decl.1[syms]
     {
       $$ = symbol_list_type_set ($syms, $TAG);
     }
-| symbol_decls TAG symbols.1[syms]
+| symbol_decls TAG symbol_decl.1[syms]
     {
       $$ = symbol_list_append ($1, symbol_list_type_set ($syms, $TAG));
     }
 ;
 
-// One or more symbols.
-symbols.1:
+// One or more token declarations (for %type).
+symbol_decl.1:
   symbol
     {
-      if (current_class != unknown_sym)
-        symbol_class_set ($symbol, current_class, @symbol, false);
+      symbol_class_set ($symbol, pct_type_sym, @symbol, false);
       $$ = symbol_list_sym_new ($symbol, @symbol);
     }
-  | symbols.1 symbol
+  | symbol_decl.1 symbol
     {
-      if (current_class != unknown_sym)
-        symbol_class_set ($symbol, current_class, @symbol, false);
+      symbol_class_set ($symbol, pct_type_sym, @symbol, false);
       $$ = symbol_list_append ($1, symbol_list_sym_new ($symbol, @symbol));
     }
 ;
@@ -953,16 +946,13 @@ add_param (param_type type, char *decl, location loc)
 
 
 static void
-handle_header (char const *value)
+handle_defines (char const *value)
 {
-  header_flag = true;
-  if (value)
-    {
-      char *file = unquote (value);
-      spec_header_file = xstrdup (file);
-      gram_scanner_last_string_free ();
-      unquote_free (file);
-    }
+  defines_flag = true;
+  char *file = unquote (value);
+  spec_header_file = xstrdup (file);
+  gram_scanner_last_string_free ();
+  unquote_free (file);
 }
 
 
