@@ -2787,13 +2787,10 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(srcdir)/build-aux/local.mk $(src
 	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnits Makefile'; \
 	$(am__cd) $(top_srcdir) && \
 	  $(AUTOMAKE) --gnits Makefile
-
 $(srcdir)/build-aux/local.mk $(srcdir)/data/local.mk $(srcdir)/etc/local.mk $(srcdir)/lib/local.mk $(srcdir)/lib/gnulib.mk $(srcdir)/src/local.mk $(am__empty):
 
 $(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 	$(SHELL) ./config.status --recheck
-
-$(am__aclocal_m4_deps):
 
 lib/config.h: lib/stamp-h1
 	@test -f $@ || rm -f lib/stamp-h1
