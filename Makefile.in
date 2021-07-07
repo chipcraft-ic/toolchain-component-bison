@@ -2774,19 +2774,6 @@ all: $(BUILT_SOURCES)
 .SUFFIXES: .c .i .l .log .o .obj .test .test$(EXEEXT) .trs .y
 am--refresh: Makefile
 	@:
-$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(srcdir)/build-aux/local.mk $(srcdir)/data/local.mk $(srcdir)/etc/local.mk $(srcdir)/lib/local.mk $(srcdir)/lib/gnulib.mk $(srcdir)/src/local.mk $(am__configure_deps)
-	@for dep in $?; do \
-	  case '$(am__configure_deps)' in \
-	    *$$dep*) \
-	      echo ' cd $(srcdir) && $(AUTOMAKE) --gnits'; \
-	      $(am__cd) $(srcdir) && $(AUTOMAKE) --gnits \
-		&& exit 0; \
-	      exit 1;; \
-	  esac; \
-	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnits Makefile'; \
-	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnits Makefile
 $(srcdir)/build-aux/local.mk $(srcdir)/data/local.mk $(srcdir)/etc/local.mk $(srcdir)/lib/local.mk $(srcdir)/lib/gnulib.mk $(srcdir)/src/local.mk $(am__empty):
 
 $(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
