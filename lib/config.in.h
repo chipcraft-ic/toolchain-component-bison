@@ -409,8 +409,7 @@
    may be supplied by this distribution. */
 #undef HAVE_ALLOCA
 
-/* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
-   */
+/* Define to 1 if <alloca.h> works. */
 #undef HAVE_ALLOCA_H
 
 /* Define if you have an arithmetic hrtime_t type. */
@@ -784,9 +783,6 @@
 /* Define to 1 if <wchar.h> declares mbstate_t. */
 #undef HAVE_MBSTATE_T
 
-/* Define to 1 if you have the <memory.h> header file. */
-#undef HAVE_MEMORY_H
-
 /* Define to 1 if you have the `microuptime' function. */
 #undef HAVE_MICROUPTIME
 
@@ -957,6 +953,9 @@
 
 /* Define to 1 if you have the <stdio_ext.h> header file. */
 #undef HAVE_STDIO_EXT_H
+
+/* Define to 1 if you have the <stdio.h> header file. */
+#undef HAVE_STDIO_H
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
@@ -1425,7 +1424,9 @@
 /* Define to 1 if the `S_IS*' macros in <sys/stat.h> do not work properly. */
 #undef STAT_MACROS_BROKEN
 
-/* Define to 1 if you have the ANSI C header files. */
+/* Define to 1 if all of the C90 standard headers exist (not just the ones
+   required in a freestanding environment). This macro is provided for
+   backward compatibility; new code need not use it. */
 #undef STDC_HEADERS
 
 /* Define to 1 if strerror_r returns char *. */
@@ -2005,7 +2006,7 @@
 /* Define to the type of st_nlink in struct stat, or a supertype. */
 #undef nlink_t
 
-/* Define to `int' if <sys/types.h> does not define. */
+/* Define as a signed integer type capable of holding a process identifier. */
 #undef pid_t
 
 /* Define as the type of the result of subtracting two pointers, if the system
